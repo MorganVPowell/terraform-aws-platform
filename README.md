@@ -2,6 +2,12 @@
 
 Infrastructure as Code for a small AWS platform: remote state, a reusable VPC module, an EKS Kubernetes cluster, a Prometheus/Grafana monitoring stack, and a webhook-driven incident triage service.
 
+## Architecture
+
+![Architecture diagram](docs/architecture1.png)
+
+*Prometheus evaluates the FlaskAppPodDown rule and sends firing alerts to Alertmanager; Grafana reads metrics from Prometheus. EKS worker nodes run in the public subnets (no NAT gateway) to save cost, so the private subnets are unused in dev. The Flask app and incident bot run in the `flask-app` namespace (labeled "app" in the diagram), and Grafana is exposed through a LoadBalancer Service restricted to my IP.*
+
 ## Layout
 
 - `bootstrap/`: creates the S3 bucket that stores remote state
