@@ -33,3 +33,13 @@ module "vpc" {
   private_subnet_cidrs = ["10.0.11.0/24", "10.0.12.0/24"]
   enable_nat_gateway   = var.enable_nat_gateway
 }
+
+# No NAT gateway: nodes run in the public subnets to save cost (a deliberate learning-project tradeoff)
+module "eks" {
+  source = "../../modules/eks"
+
+  cluster_name = "platform-dev"
+  subnet_ids   = module.vpc.public_subnet_ids
+  desired_size = var.node_count
+  max_size     = var.node_count
+}

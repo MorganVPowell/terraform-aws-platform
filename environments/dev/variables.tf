@@ -7,3 +7,8 @@ variable "enable_nat_gateway" {
   type    = bool
   default = false
 }
+
+variable "node_count" {
+  type    = number
+  default = 2
+}
