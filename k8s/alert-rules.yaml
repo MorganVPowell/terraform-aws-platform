@@ -1,0 +1,19 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: flask-app-alerts
+  namespace: flask-app
+  labels:
+    release: monitoring
+spec:
+  groups:
+    - name: flask-app
+      rules:
+        - alert: FlaskAppPodDown
+          expr: kube_deployment_status_replicas_available{namespace="flask-app",deployment="flask-app"} < 2
+          for: 1m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Flask app has fewer than 2 healthy pods"
+            description: "Only {{ $value }} of 2 expected pods are available in flask-app."

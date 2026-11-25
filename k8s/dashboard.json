@@ -1,0 +1,43 @@
+{
+  "title": "Flask App",
+  "uid": "flask-app",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "10s",
+  "time": { "from": "now-15m", "to": "now" },
+  "panels": [
+    {
+      "id": 1, "type": "timeseries", "title": "Request rate (req/s by endpoint)",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "targets": [ { "refId": "A", "legendFormat": "{{exported_endpoint}}",
+        "expr": "sum by (exported_endpoint) (rate(flask_http_requests_total[1m]))" } ]
+    },
+    {
+      "id": 2, "type": "timeseries", "title": "Error rate (5xx req/s)",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "targets": [ { "refId": "A", "legendFormat": "5xx",
+        "expr": "sum(rate(flask_http_requests_total{status=~\"5..\"}[1m]))" } ]
+    },
+    {
+      "id": 3, "type": "timeseries", "title": "p95 latency (seconds)",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "targets": [ { "refId": "A", "legendFormat": "p95",
+        "expr": "histogram_quantile(0.95, sum by (le) (rate(flask_http_request_duration_seconds_bucket[1m])))" } ]
+    },
+    {
+      "id": 4, "type": "stat", "title": "Pods available (expected 2)",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "fieldConfig": { "defaults": { "thresholds": { "mode": "absolute", "steps": [
+        { "color": "red", "value": null },
+        { "color": "orange", "value": 1 },
+        { "color": "green", "value": 2 } ] } }, "overrides": [] },
+      "options": { "colorMode": "background", "graphMode": "area" },
+      "targets": [ { "refId": "A",
+        "expr": "kube_deployment_status_replicas_available{namespace=\"flask-app\",deployment=\"flask-app\"}" } ]
+    }
+  ]
+}
