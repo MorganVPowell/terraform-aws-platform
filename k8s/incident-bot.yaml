@@ -1,0 +1,82 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: incident-bot
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: incident-bot
+  namespace: incident-bot
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: incident-bot-reader
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "events"]
+    verbs: ["get", "list"]
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: incident-bot-reader
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: incident-bot-reader
+subjects:
+  - kind: ServiceAccount
+    name: incident-bot
+    namespace: incident-bot
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: incident-bot
+  namespace: incident-bot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: incident-bot
+  template:
+    metadata:
+      labels:
+        app: incident-bot
+    spec:
+      serviceAccountName: incident-bot
+      containers:
+        - name: incident-bot
+          image: 609789571075.dkr.ecr.us-east-2.amazonaws.com/incident-bot:v1
+          ports:
+            - containerPort: 8080
+          env:
+            - name: GEMINI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: gemini-key
+                  key: GEMINI_API_KEY
+                  optional: true
+          resources:
+            requests:
+              cpu: 50m
+              memory: 96Mi
+            limits:
+              memory: 192Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: incident-bot
+  namespace: incident-bot
+spec:
+  selector:
+    app: incident-bot
+  ports:
+    - port: 8080
+      targetPort: 8080

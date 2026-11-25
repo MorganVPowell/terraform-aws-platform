@@ -1,0 +1,22 @@
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: AlertmanagerConfig
+metadata:
+  name: incident-bot
+  namespace: flask-app
+  labels:
+    release: monitoring
+spec:
+  route:
+    receiver: incident-bot
+    groupBy: ["alertname"]
+    groupWait: 10s
+    groupInterval: 1m
+    repeatInterval: 1h
+    matchers:
+      - name: alertname
+        value: FlaskAppPodDown
+  receivers:
+    - name: incident-bot
+      webhookConfigs:
+        - url: http://incident-bot.incident-bot.svc.cluster.local:8080/webhook
+          sendResolved: false
